@@ -1,0 +1,32 @@
+{
+  "name": "webacy-sdk-test",
+  "version": "1.0.0",
+  "description": "Unprotected Webacy MCP server for testing EVMAuth SDK",
+  "type": "module",
+  "main": "unprotected-server.js",
+  "scripts": {
+    "start": "node unprotected-server.js",
+    "start:protected": "node protected-server.js",
+    "test": "node test/test-unprotected.js",
+    "test:protected": "node test/test-protected.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.1",
+    "fastmcp": "^1.1.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@matt_dionis/evmauth-sdk-test": "^3.0.0-beta.1"
+  },
+  "keywords": [
+    "mcp",
+    "webacy",
+    "blockchain",
+    "security",
+    "evmauth"
+  ],
+  "author": "",
+  "license": "MIT"
+}
