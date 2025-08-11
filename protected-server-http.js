@@ -19,11 +19,22 @@ const radius = new RadiusMcpSdk({
   debug: process.env.DEBUG === 'true'
 });
 
-// Create FastMCP server
+// Create FastMCP server with authentication handler
 const server = new FastMCP({
   name: 'webacy-protected-sdk-test',
   version: '1.0.0',
-  description: 'Webacy MCP server protected with @radiustechsystems/mcp-sdk'
+  description: 'Webacy MCP server protected with @radiustechsystems/mcp-sdk',
+  // Capture __evmauth from the request
+  authenticate: async (request) => {
+    // Extract __evmauth from request body or headers
+    const body = request.body || {};
+    const evmauth = body.__evmauth || request.headers['x-evmauth'];
+    
+    console.log('🔐 Authentication handler - __evmauth present:', !!evmauth);
+    
+    // Return the authentication context
+    return { evmauth };
+  }
 });
 
 // Register all tools with appropriate protection
@@ -43,11 +54,19 @@ Object.entries(webacyTools).forEach(([toolName, tool]) => {
   } else {
     // Protected tiers - wrap with Radius MCP SDK
     const originalHandler = tool.handler;
-    execute = async (args) => {
+    execute = async (args, context) => {
       console.log(`\n🔍 [${toolName}] Incoming args:`, JSON.stringify(args, null, 2));
-      console.log(`🔑 [${toolName}] Has __evmauth:`, '__evmauth' in args);
+      console.log(`🔐 [${toolName}] Context:`, context);
       
-      // Call the protected handler
+      // Add __evmauth from context if available
+      if (context?.session?.evmauth) {
+        args.__evmauth = context.session.evmauth;
+        console.log(`✅ [${toolName}] Added __evmauth from context`);
+      } else {
+        console.log(`❌ [${toolName}] No __evmauth in context`);
+      }
+      
+      // Call the protected handler with modified args
       const protectedHandler = radius.protect(tokenId, originalHandler);
       return await protectedHandler(args);
     };
