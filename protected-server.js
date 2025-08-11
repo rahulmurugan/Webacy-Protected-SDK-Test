@@ -42,12 +42,25 @@ Object.entries(webacyTools).forEach(([toolName, tool]) => {
     console.log(`✅ ${toolName} - FREE (no token required)`);
   } else {
     // Protected tiers - wrap with Radius MCP SDK
-    execute = radius.protect(tokenId, tool.handler);
+    const originalHandler = tool.handler;
+    execute = async (args) => {
+      console.log(`\n🔍 [${toolName}] Incoming args:`, JSON.stringify(args, null, 2));
+      console.log(`🔑 [${toolName}] Has __evmauth:`, '__evmauth' in args);
+      
+      // Call the protected handler
+      const protectedHandler = radius.protect(tokenId, originalHandler);
+      return await protectedHandler(args);
+    };
     console.log(`🔒 ${toolName} - Protected with Token ID ${tokenId}`);
   }
   
-  // Register the tool with MCP (using same API as Nubila server)
-  server.tool(toolName, tool.description, tool.inputSchema, execute);
+  // Register the tool with the appropriate handler
+  server.addTool({
+    name: toolName,
+    description: tool.description,
+    parameters: tool.inputSchema,
+    execute: execute  // Direct assignment
+  });
 });
 
 // Start the server
