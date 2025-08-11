@@ -16,7 +16,7 @@
     "@radiustechsystems/mcp-sdk": "^1.0.0",
     "axios": "^1.6.7",
     "dotenv": "^16.4.1",
-    "fastmcp": "^1.1.2",
+    "fastmcp": "latest",
     "zod": "^3.22.4"
   },
   "devDependencies": {},
