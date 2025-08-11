@@ -1,30 +1,34 @@
 #!/usr/bin/env node
 import { FastMCP } from 'fastmcp';
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const { EVMAuthSDK } = require('@matt_dionis/evmauth-sdk-test');
+import { RadiusMcpSdk } from '@radiustechsystems/mcp-sdk';
 import { webacyTools, TOKEN_REQUIREMENTS } from './tools/webacy-tools.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Initialize EVMAuth SDK - Using environment variables
-const evmauth = new EVMAuthSDK({
-  contractAddress: process.env.EVMAUTH_CONTRACT_ADDRESS || '0x5448Dc20ad9e0cDb5Dd0db25e814545d1aa08D96',
-  chainId: parseInt(process.env.EVMAUTH_CHAIN_ID) || 1223953,
-  rpcUrl: process.env.EVMAUTH_RPC_URL || 'https://rpc.testnet.radiustech.xyz/q6a4fqcof9cqfdpnehevb0degslmqdowyt3vijwzj0rj5ajg'
+// Initialize Radius MCP SDK - Using environment variables
+const radius = new RadiusMcpSdk({
+  contractAddress: process.env.RADIUS_CONTRACT_ADDRESS || '0x5448Dc20ad9e0cDb5Dd0db25e814545d1aa08D96',
+  chainId: parseInt(process.env.RADIUS_CHAIN_ID) || 1223953,
+  rpcUrl: process.env.RADIUS_RPC_URL || 'https://rpc.testnet.radiustech.xyz',
+  cache: {
+    ttl: 300,
+    maxSize: 1000,
+    disabled: false
+  },
+  debug: process.env.DEBUG === 'true'
 });
 
 // Create FastMCP server
 const server = new FastMCP({
   name: 'webacy-protected-sdk-test',
   version: '1.0.0',
-  description: 'Webacy MCP server protected with @matt_dionis/evmauth-sdk-test'
+  description: 'Webacy MCP server protected with @radiustechsystems/mcp-sdk'
 });
 
 // Register all tools with appropriate protection
 console.log('🚀 Starting Webacy MCP Server (Protected with SDK)');
-console.log('🔐 Using @matt_dionis/evmauth-sdk-test package\n');
+console.log('🔐 Using @radiustechsystems/mcp-sdk package\n');
 console.log('📝 Registering protected tools...\n');
 
 Object.entries(webacyTools).forEach(([toolName, tool]) => {
@@ -37,8 +41,8 @@ Object.entries(webacyTools).forEach(([toolName, tool]) => {
     execute = tool.handler;
     console.log(`✅ ${toolName} - FREE (no token required)`);
   } else {
-    // Protected tiers - wrap with EVMAuth SDK
-    execute = evmauth.protect(tokenId, tool.handler);
+    // Protected tiers - wrap with Radius MCP SDK
+    execute = radius.protect(tokenId, tool.handler);
     console.log(`🔒 ${toolName} - Protected with Token ID ${tokenId}`);
   }
   
@@ -47,16 +51,7 @@ Object.entries(webacyTools).forEach(([toolName, tool]) => {
     name: toolName,
     description: tool.description,
     parameters: tool.inputSchema,
-    execute: async (args) => {
-      console.log(`\n🔧 Executing tool: ${toolName}`);
-      try {
-        // The SDK should handle authentication
-        return await execute(args);
-      } catch (error) {
-        console.error(`❌ Error in ${toolName}:`, error);
-        throw error;
-      }
-    }
+    execute: execute  // Direct assignment
   });
 });
 

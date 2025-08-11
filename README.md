@@ -1,6 +1,6 @@
 # Webacy SDK Test
 
-This repository contains an unprotected Webacy MCP server for testing the `@matt_dionis/evmauth-sdk-test` NPM package.
+This repository contains a Webacy MCP server for testing the `@radiustechsystems/mcp-sdk` NPM package.
 
 ## Implementation Steps
 
@@ -20,9 +20,9 @@ This repository contains an unprotected Webacy MCP server for testing the `@matt
    - `analyzeTransaction` - Transaction risk analysis
    - `analyzeUrl` - URL phishing detection
 
-### Step 3: Install EVMAuth SDK
+### Step 3: Install RadiusTech MCP SDK
 ```bash
-npm install @matt_dionis/evmauth-sdk-test
+npm install @radiustechsystems/mcp-sdk
 ```
 
 ### Step 4: Create Protected Server
@@ -38,7 +38,8 @@ Compare behavior between unprotected and protected servers:
 ```
 webacy-sdk-test/
 ├── unprotected-server.js    # Base server without protection
-├── protected-server.js      # Server with EVMAuth SDK (to be created)
+├── protected-server.js      # Server with RadiusTech MCP SDK
+├── protected-server-http.js # HTTP server for Railway deployment
 ├── tools/
 │   └── webacy-tools.js     # All 6 Webacy tools
 ├── config/
@@ -56,12 +57,32 @@ webacy-sdk-test/
 
 ## Environment Variables
 ```
-WEBACY_API_KEY=your_key_here
+# Webacy API Configuration
+WEBACY_API_KEY=your_webacy_api_key_here
 WEBACY_API_URL=https://api.webacy.com
+
+# Radius MCP SDK Configuration
+RADIUS_CONTRACT_ADDRESS=0x5448Dc20ad9e0cDb5Dd0db25e814545d1aa08D96
+RADIUS_CHAIN_ID=1223953
+RADIUS_RPC_URL=https://rpc.testnet.radiustech.xyz
+DEBUG=false
+
+# Server Configuration
+PORT=3001
+NODE_ENV=development
 ```
 
-## EVMAuth SDK Configuration
-The protected server uses the following hardcoded values from the NPM package:
+## RadiusTech MCP SDK Configuration
+The protected server uses the following configuration from the NPM package:
 - Contract: `0x5448Dc20ad9e0cDb5Dd0db25e814545d1aa08D96`
 - Chain ID: `1223953`
-- RPC URL: `https://rpc.testnet.radiustech.xyz/q6a4fqcof9cqfdpnehevb0degslmqdowyt3vijwzj0rj5ajg`
+- RPC URL: `https://rpc.testnet.radiustech.xyz`
+- Cache: TTL 300s, max size 1000, enabled
+- Debug: Configurable via DEBUG environment variable
+
+## Available Scripts
+- `npm start` - Run unprotected server
+- `npm run start:protected` - Run protected server (stdio)
+- `npm run start:http` - Run protected server (HTTP for Railway)
+- `npm test` - Run unprotected tests
+- `npm run test:protected` - Run protected tests
