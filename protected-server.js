@@ -46,13 +46,8 @@ Object.entries(webacyTools).forEach(([toolName, tool]) => {
     console.log(`🔒 ${toolName} - Protected with Token ID ${tokenId}`);
   }
   
-  // Register the tool with the appropriate handler
-  server.addTool({
-    name: toolName,
-    description: tool.description,
-    parameters: tool.inputSchema,
-    execute: execute  // Direct assignment
-  });
+  // Register the tool with MCP (using same API as Nubila server)
+  server.tool(toolName, tool.description, tool.inputSchema, execute);
 });
 
 // Start the server
