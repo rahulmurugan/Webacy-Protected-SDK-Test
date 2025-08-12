@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { FastMCP } from 'fastmcp';
 import { RadiusMcpSdk } from '@radiustechsystems/mcp-sdk';
+import { z } from 'zod';
 import { webacyTools, TOKEN_REQUIREMENTS } from './tools/webacy-tools.js';
 import dotenv from 'dotenv';
 
@@ -19,22 +20,11 @@ const radius = new RadiusMcpSdk({
   debug: process.env.DEBUG === 'true'
 });
 
-// Create FastMCP server with authentication handler
+// Create FastMCP server
 const server = new FastMCP({
   name: 'webacy-protected-sdk-test',
   version: '1.0.0',
-  description: 'Webacy MCP server protected with @radiustechsystems/mcp-sdk',
-  // Capture __evmauth from the request
-  authenticate: async (request) => {
-    // Extract __evmauth from request body or headers
-    const body = request.body || {};
-    const evmauth = body.__evmauth || request.headers['x-evmauth'];
-    
-    console.log('🔐 Authentication handler - __evmauth present:', !!evmauth);
-    
-    // Return the authentication context
-    return { evmauth };
-  }
+  description: 'Webacy MCP server protected with @radiustechsystems/mcp-sdk'
 });
 
 // Register all tools with appropriate protection
@@ -49,36 +39,117 @@ Object.entries(webacyTools).forEach(([toolName, tool]) => {
   let execute;
   if (tokenId === 0) {
     // Free tier - no protection
-    execute = tool.handler;
+    execute = async (args) => {
+      const result = await tool.handler(args);
+      return result;
+    };
     console.log(`✅ ${toolName} - FREE (no token required)`);
   } else {
     // Protected tiers - wrap with Radius MCP SDK
     const originalHandler = tool.handler;
-    execute = async (args, context) => {
+    execute = async (args) => {
       console.log(`\n🔍 [${toolName}] Incoming args:`, JSON.stringify(args, null, 2));
-      console.log(`🔐 [${toolName}] Context:`, context);
       
-      // Add __evmauth from context if available
-      if (context?.session?.evmauth) {
-        args.__evmauth = context.session.evmauth;
-        console.log(`✅ [${toolName}] Added __evmauth from context`);
+      // Check if __evmauth is present
+      if (args.__evmauth) {
+        console.log(`✅ [${toolName}] __evmauth present in args`);
+        try {
+          const authProof = typeof args.__evmauth === 'string' ? JSON.parse(args.__evmauth) : args.__evmauth;
+          console.log(`🔐 [${toolName}] Auth proof signature length:`, authProof.signature?.length);
+        } catch (e) {
+          console.log(`⚠️ [${toolName}] Failed to parse auth proof:`, e);
+        }
       } else {
-        console.log(`❌ [${toolName}] No __evmauth in context`);
+        console.log(`❌ [${toolName}] No __evmauth in args`);
       }
       
-      // Call the protected handler with modified args
-      const protectedHandler = radius.protect(tokenId, originalHandler);
-      return await protectedHandler(args);
+      // Create MCP request structure expected by Radius SDK
+      const mcpRequest = {
+        method: 'tools/call',
+        params: {
+          name: toolName,
+          arguments: args
+        }
+      };
+      
+      // Create the protected handler
+      const protectedHandler = radius.protect(tokenId, async (request) => {
+        // Extract args from the MCP request
+        const toolArgs = request.params?.arguments || {};
+        
+        // Call the original handler with clean args (without __evmauth)
+        const cleanArgs = { ...toolArgs };
+        delete cleanArgs.__evmauth;
+        
+        const result = await originalHandler(cleanArgs);
+        
+        // Return in MCP format with content array
+        return {
+          content: [{
+            type: "text",
+            text: result
+          }]
+        };
+      });
+      
+      try {
+        // Call the protected handler with the MCP request
+        const response = await protectedHandler(mcpRequest);
+        
+        // Handle the response
+        if (response && typeof response === 'object') {
+          if ('content' in response && Array.isArray(response.content)) {
+            // Check if this is an error response from Radius
+            const firstContent = response.content[0];
+            if (firstContent && typeof firstContent === 'object' && 'text' in firstContent) {
+              try {
+                // Try to parse as JSON error
+                const parsed = JSON.parse(firstContent.text);
+                if (parsed.error) {
+                  // This is a Radius error - throw it properly
+                  throw new Error(firstContent.text);
+                }
+              } catch (e) {
+                // Not JSON error, it's the actual result
+                return firstContent.text;
+              }
+            }
+          } else if ('error' in response && response.error) {
+            // Error - throw with proper message
+            const error = response.error;
+            throw new Error(error.message || 'Authentication failed');
+          }
+        }
+        
+        // Default error
+        throw new Error('Unexpected response from authentication');
+      } catch (error) {
+        console.error(`❌ [${toolName}] Error:`, error.message);
+        throw error;
+      }
     };
     console.log(`🔒 ${toolName} - Protected with Token ID ${tokenId}`);
+  }
+  
+  // Add __evmauth to the tool's input schema for protected tools
+  let parameters = tool.inputSchema;
+  if (tokenId !== 0) {
+    // For protected tools, ensure __evmauth is in the schema
+    const schemaObj = parameters._def || parameters;
+    if (schemaObj && schemaObj.shape && !schemaObj.shape.__evmauth) {
+      // Clone the schema and add __evmauth
+      parameters = tool.inputSchema.extend({
+        __evmauth: z.any().optional().describe("Authentication proof (automatically provided)")
+      });
+    }
   }
   
   // Register the tool with the appropriate handler
   server.addTool({
     name: toolName,
-    description: tool.description,
-    parameters: tool.inputSchema,
-    execute: execute  // Direct assignment
+    description: tokenId === 0 ? tool.description : `${tool.description} Requires EVMAuth Token #${tokenId}. IMPORTANT: Call this tool directly without checking wallet first! If you lack authentication, you'll receive clear error instructions. The auth flow is: 1) Call this directly, 2) Get error with required tokens, 3) Use authenticate_and_purchase, 4) Retry with proof.`,
+    parameters: parameters,
+    execute: execute
   });
 });
 
