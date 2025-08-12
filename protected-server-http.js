@@ -8,7 +8,7 @@ dotenv.config();
 
 // Initialize Radius MCP SDK - Using environment variables from Railway
 const radius = new RadiusMcpSdk({
-  contractAddress: process.env.RADIUS_CONTRACT_ADDRESS || '0x5448Dc20ad9e0cDb5Dd0db25e814545d1aa08D96',
+  contractAddress: process.env.RADIUS_CONTRACT_ADDRESS || '0x9f2B42FB651b75CC3db4ef9FEd913A22BA4629Cf',
   chainId: parseInt(process.env.RADIUS_CHAIN_ID) || 1223953,
   rpcUrl: process.env.RADIUS_RPC_URL || 'https://rpc.testnet.radiustech.xyz',
   cache: {
@@ -24,17 +24,9 @@ const server = new FastMCP({
   name: 'webacy-protected-sdk-test',
   version: '1.0.0',
   description: 'Webacy MCP server protected with @radiustechsystems/mcp-sdk',
-  // Capture __evmauth from the request
-  authenticate: async (request) => {
-    // Extract __evmauth from request body or headers
-    const body = request.body || {};
-    const evmauth = body.__evmauth || request.headers['x-evmauth'];
-    
-    console.log('🔐 Authentication handler - __evmauth present:', !!evmauth);
-    
-    // Return the authentication context
-    return { evmauth };
-  }
+  // NOTE: Authentication handler is called BEFORE tools execute
+  // We can't capture __evmauth here because it comes with tool calls
+  // So we'll handle it differently in the tool execution
 });
 
 // Register all tools with appropriate protection
@@ -53,21 +45,16 @@ Object.entries(webacyTools).forEach(([toolName, tool]) => {
     console.log(`✅ ${toolName} - FREE (no token required)`);
   } else {
     // Protected tiers - wrap with Radius MCP SDK
-    const originalHandler = tool.handler;
-    execute = async (args, context) => {
-      console.log(`\n🔍 [${toolName}] Incoming args:`, JSON.stringify(args, null, 2));
-      console.log(`🔐 [${toolName}] Context:`, context);
+    // IMPORTANT: We need to manually check for __evmauth in args
+    execute = async (args) => {
+      console.log(`\n🔍 [${toolName}] Raw args received:`, JSON.stringify(args, null, 2));
       
-      // Add __evmauth from context if available
-      if (context?.session?.evmauth) {
-        args.__evmauth = context.session.evmauth;
-        console.log(`✅ [${toolName}] Added __evmauth from context`);
-      } else {
-        console.log(`❌ [${toolName}] No __evmauth in context`);
-      }
+      // The issue: FastMCP strips __evmauth before passing to our handler
+      // This is a fundamental incompatibility between FastMCP and RadiusTech SDK
+      console.log(`❌ [${toolName}] FastMCP has stripped __evmauth parameter`);
       
-      // Call the protected handler with modified args
-      const protectedHandler = radius.protect(tokenId, originalHandler);
+      // Call RadiusTech SDK protect - it will fail without __evmauth
+      const protectedHandler = radius.protect(tokenId, tool.handler);
       return await protectedHandler(args);
     };
     console.log(`🔒 ${toolName} - Protected with Token ID ${tokenId}`);

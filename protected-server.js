@@ -8,7 +8,7 @@ dotenv.config();
 
 // Initialize Radius MCP SDK - Using environment variables
 const radius = new RadiusMcpSdk({
-  contractAddress: process.env.RADIUS_CONTRACT_ADDRESS || '0x5448Dc20ad9e0cDb5Dd0db25e814545d1aa08D96',
+  contractAddress: process.env.RADIUS_CONTRACT_ADDRESS || '0x9f2B42FB651b75CC3db4ef9FEd913A22BA4629Cf',
   chainId: parseInt(process.env.RADIUS_CHAIN_ID) || 1223953,
   rpcUrl: process.env.RADIUS_RPC_URL || 'https://rpc.testnet.radiustech.xyz',
   cache: {
