@@ -6,7 +6,9 @@
   "main": "server.js",
   "scripts": {
     "start:unprotected": "DEMO_MODE=true node server.js",
-    "start:protected": "node server.js"
+    "start:protected": "node server.js",
+    "start:unprotected-stdio": "NODE_ENV=development DEMO_MODE=true node server.js",
+    "start:protected-stdio": "NODE_ENV=development node server.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
