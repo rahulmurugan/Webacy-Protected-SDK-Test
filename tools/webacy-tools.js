@@ -138,4 +138,4 @@ export const TOKEN_TIER_MAPPINGS = {
   "Basic": 1,
   "Premium": 3,
   "Pro": 5,
-}
+};
