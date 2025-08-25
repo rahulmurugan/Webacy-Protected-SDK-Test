@@ -132,3 +132,10 @@ export const TOKEN_REQUIREMENTS = {
   analyzeTransaction: 3,      // Premium tier (Token ID 3)  
   analyzeUrl: 5              // Pro tier (Token ID 5)
 };
+
+export const TOKEN_TIER_MAPPINGS = {
+  "Free": 0,
+  "Basic": 1,
+  "Premium": 3,
+  "Pro": 5,
+}
