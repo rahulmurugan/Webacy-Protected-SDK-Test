@@ -28,7 +28,7 @@ export const webacyTools = {
       show_low_risk: z.boolean().optional().describe("Return details on low risk issues found with the address")
     }),
     handler: async (args) => {
-      const endpoint = `/addresses/threat/${args.address}`;
+      const endpoint = `/addresses/${args.address}`;
       const queryParams = new URLSearchParams();
       
       if (args.chain) {
