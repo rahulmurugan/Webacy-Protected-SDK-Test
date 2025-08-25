@@ -1,22 +1,19 @@
 {
-  "name": "webacy-sdk-test",
+  "name": "radius-webacy-mcp-server",
   "version": "1.0.0",
-  "description": "Unprotected Webacy MCP server for testing EVMAuth SDK",
+  "description": "Webacy MCP server with EVMAuth",
   "type": "module",
-  "main": "unprotected-server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node unprotected-server.js",
-    "start:protected": "node protected-server.js",
-    "start:http": "node protected-server-http.js",
-    "test": "node test/test-unprotected.js",
-    "test:protected": "node test/test-protected.js"
+    "start:unprotected": "DEMO_MODE=true node server.js",
+    "start:protected": "node server.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
     "@radiustechsystems/mcp-sdk": "^1.0.0",
     "axios": "^1.6.7",
     "dotenv": "^16.4.1",
-    "fastmcp": "latest",
+    "fastmcp": "^1.1.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {},
@@ -25,7 +22,8 @@
     "webacy",
     "blockchain",
     "security",
-    "evmauth"
+    "evmauth",
+    "radius"
   ],
   "author": "",
   "license": "MIT"
