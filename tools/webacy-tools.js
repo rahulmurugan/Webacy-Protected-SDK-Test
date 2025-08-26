@@ -11,7 +11,7 @@ export const webacyTools = {
     handler: async () => {
       return JSON.stringify({
         status: "OK",
-        service: "Webacy Risk Analysis MCP Server (Unprotected)",
+        service: `Webacy Risk Analysis MCP Server (${process.env.NODE_ENV}, ${process.env.DEMO_MODE})`,
         timestamp: new Date().toISOString(),
         message: "Server is running and ready to analyze blockchain security risks"
       }, null, 2);

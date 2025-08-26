@@ -1,5 +1,10 @@
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { logInfo } from '../logger.js';
+
+const SOURCE_FOLDER = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({path: `${SOURCE_FOLDER}/.env`});
 
 export const WEBACY_CONFIG = {
   apiKey: process.env.WEBACY_API_KEY || '',
@@ -29,7 +34,7 @@ export async function makeWebacyRequest(endpoint, options = {}) {
     fetchOptions.body = options.body;
   }
 
-  console.log("API request made to:", url);
+  logInfo(`API request made to: ${url}`);
 
   try {
     const response = await fetch(url, fetchOptions);
