@@ -31,7 +31,7 @@ Object.entries(webacyTools).forEach(([toolName, tool]) => {
   
   // Create the authentication wrapper for each tool
   const authenticatedHandler = async (args) => {
-    logInfo(`\n🔍 [${toolName}] Incoming args: ${JSON.stringify(args, null, 2)}`);
+    // logInfo(`\n🔍 [${toolName}] Incoming args: ${JSON.stringify(args, null, 2)}`);
     
     // DEMO MODE: Bypass authentication
     if (DEMO_MODE) {
