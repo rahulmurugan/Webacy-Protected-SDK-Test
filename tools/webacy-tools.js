@@ -11,7 +11,7 @@ export const webacyTools = {
     handler: async () => {
       return JSON.stringify({
         status: "OK",
-        service: "Webacy Risk Analysis MCP Server (Unprotected)",
+        service: `Webacy Risk Analysis MCP Server (${process.env.NODE_ENV}, ${process.env.DEMO_MODE})`,
         timestamp: new Date().toISOString(),
         message: "Server is running and ready to analyze blockchain security risks"
       }, null, 2);
@@ -28,7 +28,7 @@ export const webacyTools = {
       show_low_risk: z.boolean().optional().describe("Return details on low risk issues found with the address")
     }),
     handler: async (args) => {
-      const endpoint = `/addresses/threat/${args.address}`;
+      const endpoint = `/addresses/${args.address}`;
       const queryParams = new URLSearchParams();
       
       if (args.chain) {
@@ -131,4 +131,11 @@ export const TOKEN_REQUIREMENTS = {
   analyzeContract: 3,         // Premium tier (Token ID 3)
   analyzeTransaction: 3,      // Premium tier (Token ID 3)  
   analyzeUrl: 5              // Pro tier (Token ID 5)
+};
+
+export const TOKEN_TIER_MAPPINGS = {
+  "Free": 0,
+  "Basic": 1,
+  "Premium": 3,
+  "Pro": 5,
 };

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { FastMCP } from 'fastmcp';
 import { webacyTools } from './tools/webacy-tools.js';
+import { logInfo } from './logger.js';
 
 // Create FastMCP server
 const server = new FastMCP({
@@ -10,8 +11,8 @@ const server = new FastMCP({
 });
 
 // Register all tools without any protection
-console.log('🚀 Starting Webacy MCP Server (Unprotected)');
-console.log('📝 Registering tools...\n');
+logInfo('🚀 Starting Webacy MCP Server (Unprotected)');
+logInfo('📝 Registering tools...\n');
 
 // Register each tool
 Object.entries(webacyTools).forEach(([toolName, tool]) => {
@@ -22,22 +23,22 @@ Object.entries(webacyTools).forEach(([toolName, tool]) => {
     execute: tool.handler
   });
   
-  console.log(`✅ Registered: ${toolName} - ${tool.description}`);
+  logInfo(`✅ Registered: ${toolName} - ${tool.description}`);
 });
 
 // Start the server
 async function main() {
-  console.log('\n🌟 All tools registered successfully!');
-  console.log('⚠️  WARNING: This server has NO token protection!');
-  console.log('📊 All Webacy API tools are freely accessible.\n');
+  logInfo('\n🌟 All tools registered successfully!');
+  logInfo('⚠️  WARNING: This server has NO token protection!');
+  logInfo('📊 All Webacy API tools are freely accessible.\n');
   
   await server.start();
   
-  console.log('✨ Webacy MCP Server is running');
-  console.log('🔌 Ready to accept connections...\n');
+  logInfo('✨ Webacy MCP Server is running');
+  logInfo('🔌 Ready to accept connections...\n');
 }
 
 main().catch((error) => {
-  console.error('❌ Server failed to start:', error);
+  logInfo(`❌ Server failed to start: ${error}`);
   process.exit(1);
 });
