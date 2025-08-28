@@ -1,52 +1,56 @@
-# Webacy SDK Test
+# Webacy MCP server with Radius EVMAuth
 
-This repository contains a Webacy MCP server for testing the `@radiustechsystems/mcp-sdk` NPM package.
+This repository contains a Webacy MCP server monetized & protected by Radius SDK
 
-## Implementation Steps
+## Setup
 
-### Step 1: Setup Unprotected Server ✅
 1. Clone/create this repository
 2. Install dependencies: `npm install`
 3. Copy `.env.example` to `.env` and add your Webacy API key
-4. Run the unprotected server: `npm start`
 
-### Step 2: Test Unprotected Server
-1. Configure in Claude Desktop settings or your MCP client
-2. Test all 6 tools work without any authentication:
-   - `ping` - Server health check
-   - `checkAddressThreat` - Address threat analysis
-   - `checkSanctionStatus` - Sanctions check
-   - `analyzeContract` - Contract security audit
-   - `analyzeTransaction` - Transaction risk analysis
-   - `analyzeUrl` - URL phishing detection
+## Usage
 
-### Step 3: Install RadiusTech MCP SDK
+### Running the Server
+
+**Unprotected Server (Demo Mode)**
 ```bash
-npm install @radiustechsystems/mcp-sdk
+npm run start:unprotected        # Basic unprotected server
+npm run start:unprotected-stdio  # Development mode with stdio transport
 ```
 
-### Step 4: Create Protected Server
-Create `protected-server.js` that uses the SDK to add token protection.
+**Protected Server (EVMAuth)**
+```bash
+npm run start:protected          # Protected server with token authentication
+npm run start:protected-stdio    # Development mode with stdio transport
+```
 
-### Step 5: Test Protection
-Compare behavior between unprotected and protected servers:
-- Free tier (ping) should work without tokens
-- Other tools should require appropriate tokens
-- Error messages should guide users to purchase tokens
+### Available Tools
+
+The server provides 6 Webacy security tools:
+- `ping` - Server health check
+- `checkAddressThreat` - Address threat analysis
+- `checkSanctionStatus` - Sanctions check
+- `analyzeContract` - Contract security audit
+- `analyzeTransaction` - Transaction risk analysis
+- `analyzeUrl` - URL phishing detection
+
+### Testing the Implementation
+
+1. **Test Unprotected Server**: Configure in Claude Desktop settings or your MCP client and verify all tools work without authentication
+2. **Test Protected Server**: Compare behavior - free tier (ping) works without tokens, other tools require appropriate tokens
 
 ## Project Structure
 ```
-webacy-sdk-test/
-├── unprotected-server.js    # Base server without protection
-├── protected-server.js      # Server with RadiusTech MCP SDK
-├── protected-server-http.js # HTTP server for Railway deployment
+radius-webacy-mcp-server/
+├── server.js               # Main MCP server
+├── unprotected-server.js   # Sample server without protection
 ├── tools/
 │   └── webacy-tools.js     # All 6 Webacy tools
 ├── config/
 │   └── webacy-config.js    # API configuration
-└── test/
-    ├── test-unprotected.js # Test suite for unprotected
-    └── test-protected.js   # Test suite for protected
+├── Procfile                # Railway deployment config
+├── railway.json            # Railway settings
+└── package.json            # Dependencies and scripts
 ```
 
 ## Token Requirements (for protected version)
@@ -55,22 +59,6 @@ webacy-sdk-test/
 - **Premium Tier (Token 3)**: analyzeContract, analyzeTransaction
 - **Pro Tier (Token 5)**: analyzeUrl
 
-## Environment Variables
-```
-# Webacy API Configuration
-WEBACY_API_KEY=your_webacy_api_key_here
-WEBACY_API_URL=https://api.webacy.com
-
-# Radius MCP SDK Configuration
-RADIUS_CONTRACT_ADDRESS=0x5448Dc20ad9e0cDb5Dd0db25e814545d1aa08D96
-RADIUS_CHAIN_ID=1223953
-RADIUS_RPC_URL=https://rpc.testnet.radiustech.xyz
-DEBUG=false
-
-# Server Configuration
-PORT=3001
-NODE_ENV=development
-```
 
 ## RadiusTech MCP SDK Configuration
 The protected server uses the following configuration from the NPM package:
@@ -81,8 +69,7 @@ The protected server uses the following configuration from the NPM package:
 - Debug: Configurable via DEBUG environment variable
 
 ## Available Scripts
-- `npm start` - Run unprotected server
-- `npm run start:protected` - Run protected server (stdio)
-- `npm run start:http` - Run protected server (HTTP for Railway)
-- `npm test` - Run unprotected tests
-- `npm run test:protected` - Run protected tests
+- `npm run start:unprotected` - Run unprotected server (demo mode)
+- `npm run start:protected` - Run protected server with EVMAuth
+- `npm run start:unprotected-stdio` - Run unprotected server in development mode
+- `npm run start:protected-stdio` - Run protected server in development mode

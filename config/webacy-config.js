@@ -19,7 +19,7 @@ export async function makeWebacyRequest(endpoint, options = {}) {
     method: options.method || 'GET',
     headers: {
       ...WEBACY_CONFIG.headers,
-      'X-API-Key': WEBACY_CONFIG.apiKey,
+      'x-api-key': WEBACY_CONFIG.apiKey,
       ...options.headers
     },
     timeout: WEBACY_CONFIG.timeout
@@ -28,6 +28,8 @@ export async function makeWebacyRequest(endpoint, options = {}) {
   if (options.body) {
     fetchOptions.body = options.body;
   }
+
+  console.log("API request made to:", url);
 
   try {
     const response = await fetch(url, fetchOptions);
