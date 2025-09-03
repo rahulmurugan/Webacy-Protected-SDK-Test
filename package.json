@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "Webacy MCP server with EVMAuth",
   "type": "module",
-  "main": "server.js",
+  "main": "unprotected-server.js",
   "scripts": {
-    "start:unprotected": "DEMO_MODE=true node server.js",
+    "start": "DEMO_MODE=true node unprotected-server.js",
+    "start:demo": "DEMO_MODE=true node unprotected-server.js",
+    "start:unprotected": "node unprotected-server.js",
+    "start:unprotected-old": "DEMO_MODE=true node server.js",
     "start:protected": "node server.js",
     "start:unprotected-stdio": "NODE_ENV=development DEMO_MODE=true node server.js",
     "start:protected-stdio": "NODE_ENV=development node server.js"
